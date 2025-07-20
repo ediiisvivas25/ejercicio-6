@@ -1,0 +1,53 @@
+name: Deploy React App to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main # Or 'master' if that's your default branch
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4 # Use v4 for the latest stable version
+
+      - name: Deploy React to GitHub Pages
+        uses: bitovi/github-actions-react-to-github-pages@v1.2.4
+        with:
+          # Specifies the path of the static assets after building.
+          # For Create React App, this is usually 'build'. For Vite, it's 'dist'.
+          # Adjust this based on your project's build output.
+          path: 'build' # O 'dist' si usas Vite o un configurador similar
+
+          # Specifies the command to run the installation.
+          # 'npm ci' is recommended for CI/CD environments for consistent builds.
+          # If you use Yarn, change this to 'yarn install --frozen-lockfile'.
+          install_command: 'npm ci' 
+
+          # Specifies the command to run after the install command for the build.
+          # For Create React App, this is 'npm run build'.
+          # For Vite, it's 'npm run build'.
+          # Adjust this if your build script is different.
+          build_command: 'npm run build'
+
+          # Specifies if the action should cache npm dependencies.
+          # Set to 'true' to speed up subsequent builds.
+          caching: true
+
+        env:
+          # This token is automatically provided by GitHub Actions and
+          # is necessary for publishing to GitHub Pages.
+          # Ensure your repository settings allow GitHub Actions to
+          # write to the GitHub Pages branch (Settings > Pages > Build and deployment).
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
